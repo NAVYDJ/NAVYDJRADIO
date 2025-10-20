@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=2.0">
+    <title>Reproductor de Radio Futurista</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #0a0a23;
+            overflow: hidden;
+        }
+
+        .radio-player {
+            background: rgba(10, 10, 35, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 10px rgba(0, 255, 255, 0.2);
+            text-align: center;
+            width: 450px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .radio-player::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 650px;
+            height: 650px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+            animation: pulse-bg 5s infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse-bg {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.2); opacity: 0.4; }
+        }
+
+        .radio-player h2 {
+            margin: 0 0 20px;
+            font-size: 2.2em;
+            color: #00f7ff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00f7ff;
+        }
+
+        .live-indicator {
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(255, 0, 204, 0.5);
+            animation: neon-glow 1.5s infinite;
+        }
+
+        @keyframes neon-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 204, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(255, 0, 204, 0.8); }
+        }
+
+        .wave-container {
+            position: relative;
+            height: 50px;
+            margin: 20px 0;
+        }
+
+        .wave {
+            position: absolute;
+            width: 10px;
+            background: #00f7ff;
+            bottom: 0;
+            animation: wave 1s infinite ease-in-out;
+            box-shadow: 0 0 10px #00f7ff;
+        }
+
+        .wave:nth-child(1) { left: 20%; height: 20px; animation-delay: 0s; }
+        .wave:nth-child(2) { left: 30%; height: 30px; animation-delay: 0.2s; }
+        .wave:nth-child(3) { left: 40%; height: 40px; animation-delay: 0.4s; }
+        .wave:nth-child(4) { left: 50%; height: 30px; animation-delay: 0.6s; }
+        .wave:nth-child(5) { left: 60%; height: 20px; animation-delay: 0.8s; }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 50px; }
+        }
+
+        .wave.paused { animation-play-state: paused; }
+
+        audio {
+            width: 100%;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+        }
+
+        .controls button {
+            padding: 12px 30px;
+            margin: 10px;
+            border: none;
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            color: #fff;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(255, 0, 204, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .controls button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 0, 204, 0.8);
+        }
+
+        .volume-control {
+            margin-top: 20px;
+        }
+
+        .volume-control input {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #00f7ff;
+        }
+
+        .status {
+            font-size: 0.9em;
+            color: #00f7ff;
+            margin-top: 15px;
+            text-shadow: 0 0 5px #00f7ff;
+        }
+
+        .dj-section {
+            margin-top: 30px;
+        }
+
+        .dj-section h3 {
+            font-size: 1.3em;
+            color: #00f7ff;
+            text-shadow: 0 0 10px #00f7ff;
+        }
+
+        .dj-list {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .dj-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px;
+            text-align: center;
+            width: 100px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .dj-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .dj-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            border: 2px solid #00f7ff;
+            box-shadow: 0 0 10px #00f7ff;
+        }
+
+        .dj-card p {
+            font-size: 0.8em;
+            color: #fff;
+            margin: 0;
+            text-shadow: 0 0 5px #00f7ff;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00f7ff;
+            border-radius: 50%;
+            animation: float 10s infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(1); opacity: 0.5; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 7s;"></div>
+    </div>
+
+    <div 
+    <div class="radio-player">
+        <h2>Radio navy</h2>
+        <div class="live-indicator">DJ en Vivo</div>
+        <div class="wave-container" id="waveContainer">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <audio id="radioPlayer" controls>
+            <source src="https://uk23freenew.listen2myradio.com/live.mp3?typeportmount=s1_16304_stream_790154007">
+            Tu navegador no soporta el elemento de audio.
+        </audio>
+        <div class="controls">
+            <button onclick="playPause()">Play/Pausa</button>
+        </div>
+        <div class="volume-control">
+            <label for="volume">Volumen:</label>
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="1" onchange="setVolume()">
+        </div>
+        <div class="status" id="status">Estado: Detenido</div>
+        <div class="dj-section">
+            <h3>Nuestros DJs</h3>
+            <div class="dj-list">
+                <div class="dj-card">
+                    <img src="https://static.wixstatic.com/media/457323_a697a6ae66904ecd86864ec83ef22d63~mv2.png" alt="DJ Navy">
+                    <p>DJ Navy</p>
+                </div>
+                <div class="dj-card">
+                    <img src="https://static.wixstatic.com/media/457323_117cd044f6f148f7ac1d17be12c96fb9~mv2.png" alt="DJ Canela">
+                    <p>DJ Canela</p>
+                </div>
+                <div class="dj-card">
+                    <img src="https://static.wixstatic.com/media/457323_6ac117a6dab74684ab55b7f7b7ffa930~mv2_d_2560_1600_s_2.png" alt="DJ Ovni">
+                    <p>DJ Ovni</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const radioPlayer = document.getElementById('radioPlayer');
+        const status = document.getElementById('status');
+        const waveContainer = document.getElementById('waveContainer');
+        const waves = waveContainer.getElementsByClassName('wave');
+
+        function playPause() {
+            if (radioPlayer.paused) {
+                radioPlayer.play();
+                status.textContent = 'Estado: Reproduciendo';
+                for (let wave of waves) {
+                    wave.classList.remove('paused');
+                }
+            } else {
+                radioPlayer.pause();
+                status.textContent = 'Estado: Detenido';
+                for (let wave of waves) {
+                    wave.classList.add('paused');
+                }
+            }
+        }
+
+        function setVolume() {
+            radioPlayer.volume = document.getElementById('volume').value;
+        }
+
+        radioPlayer.addEventListener('error', () => {
+            status.textContent = 'Estado: Error de conexión';
+            for (let wave of waves) {
+                wave.classList.add('paused');
+            }
+        });
+
+        radioPlayer.addEventListener('playing', () => {
+            status.textContent = 'Estado: Reproduciendo';
+            for (let wave of waves) {
+                wave.classList.remove('paused');
+            }
+        });
+
+        radioPlayer.addEventListener('waiting', () => {
+            status.textContent = 'Estado: Cargando...';
+            for (let wave of waves) {
+                wave.classList.add('paused');
+            }
+        });
+    </script>
+</body>
+</html>
